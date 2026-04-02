@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>21C PowerApps Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:           #0d1a0f;
+      --surface:      #122016;
+      --surface2:     #1a2e1d;
+      --border:       #2a4030;
+      --green-bright: #4ade80;
+      --green-mid:    #22c55e;
+      --green-dim:    #16a34a;
+      --amber:        #fbbf24;
+      --amber-dim:    #b45309;
+      --red:          #f87171;
+      --red-dim:      #991b1b;
+      --text:         #d1fae5;
+      --text-muted:   #6ee7b7;
+      --text-faint:   #34614a;
+      --sidebar-w:    170px;
+      --header-h:     64px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ───────────────────────────────────────────── */
+    .menu-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--green-bright);
+      cursor: pointer;
+      flex-shrink: 0;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .menu-toggle:hover {
+      background: rgba(74,222,128,0.08);
+      border-color: var(--green-dim);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: var(--header-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 24px;
+    }
+
+    .header-title {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: 0.04em;
+      color: var(--green-bright);
+      white-space: nowrap;
+    }
+
+    .env-switcher {
+      display: flex;
+      align-items: center;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+
+    .env-btn {
+      padding: 4px 14px;
+      border-radius: 5px;
+      border: none;
+      background: transparent;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      color: var(--text-faint);
+    }
+
+    .env-btn:hover { color: var(--text-muted); }
+
+    .env-btn.active-sandbox {
+      background: var(--surface2);
+      color: var(--green-bright);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .env-btn.active-prod {
+      background: #2a0a0a;
+      color: var(--red);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    #env-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      padding: 2px 8px;
+      border-radius: 4px;
+      vertical-align: middle;
+      margin-left: 8px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    #env-badge.sandbox {
+      background: rgba(74,222,128,0.12);
+      color: var(--green-bright);
+      border: 1px solid rgba(74,222,128,0.25);
+    }
+
+    #env-badge.prod {
+      background: rgba(248,113,113,0.12);
+      color: var(--red);
+      border: 1px solid rgba(248,113,113,0.25);
+    }
+
+    .search-wrap {
+      flex: 1;
+      max-width: 360px;
+      position: relative;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-faint);
+      pointer-events: none;
+    }
+
+    #search {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 12px 7px 34px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    #search::placeholder { color: var(--text-faint); }
+    #search:focus { border-color: var(--green-dim); }
+
+    .admin-bar {
+      display: flex;
+      gap: 6px;
+      margin-left: auto;
+    }
+
+    .admin-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 11px;
+      background: transparent;
+      border: 1px solid var(--amber-dim);
+      border-radius: 6px;
+      color: var(--amber);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .admin-link:hover {
+      background: rgba(251,191,36,0.1);
+      border-color: var(--amber);
+    }
+
+    /* ── LAYOUT ───────────────────────────────────────────── */
+    .layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    nav {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 16px 0;
+      position: sticky;
+      top: var(--header-h);
+      height: calc(100vh - var(--header-h));
+    }
+
+    nav::-webkit-scrollbar { width: 4px; }
+    nav::-webkit-scrollbar-track { background: transparent; }
+    nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .nav-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      padding: 0 16px 6px;
+    }
+
+    .nav-item {
+      display: block;
+      padding: 7px 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+    }
+
+    .nav-item:hover {
+      color: var(--green-bright);
+      border-left-color: var(--green-bright);
+      background: rgba(74,222,128,0.04);
+    }
+
+    .nav-item.active {
+      color: var(--green-bright);
+      border-left-color: var(--green-bright);
+    }
+
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px 32px;
+    }
+
+    main::-webkit-scrollbar { width: 6px; }
+    main::-webkit-scrollbar-track { background: transparent; }
+    main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* ── ENTITY CARD ──────────────────────────────────────── */
+    .entity-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      transition: border-color 0.2s;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .entity-card:hover { border-color: var(--green-dim); }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 5px;
+      flex-wrap: wrap;
+    }
+
+    .entity-card h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--green-bright);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .entity-card h2::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green-mid);
+      flex-shrink: 0;
+    }
+
+    /* ── GUID LOOKUP ──────────────────────────────────────── */
+    .guid-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      min-width: 220px;
+      max-width: 460px;
+    }
+
+    .guid-row.disabled {
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .guid-input-wrap {
+      position: relative;
+      flex: 1;
+    }
+
+    .guid-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 26px 5px 10px;
+      color: var(--text-muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .guid-input::placeholder { color: var(--text-faint); font-size: 10px; }
+    .guid-input:focus { border-color: var(--green-dim); }
+
+    .guid-clear {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-faint);
+      font-size: 11px;
+      cursor: pointer;
+      padding: 0 2px;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+
+    .guid-clear:hover { color: var(--text-muted); }
+
+    .guid-go {
+      flex-shrink: 0;
+      padding: 5px 11px;
+      background: var(--surface2);
+      border: 1px solid var(--green-dim);
+      border-radius: 6px;
+      color: var(--green-bright);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+
+    .guid-go:hover {
+      background: rgba(74,222,128,0.1);
+      border-color: var(--green-bright);
+    }
+
+    .guid-error {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--red);
+      min-height: 14px;
+      margin-bottom: 8px;
+    }
+
+    /* ── SECTION LINKS ────────────────────────────────────── */
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .section-link {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
+    }
+
+    .section-link[data-type="table"]         { --accent: #4ade80; }
+    .section-link[data-type="columns"]       { --accent: #60a5fa; }
+    .section-link[data-type="forms"]         { --accent: #c084fc; }
+    .section-link[data-type="views"]         { --accent: #fb923c; }
+    .section-link[data-type="relationships"] { --accent: #f472b6; }
+    .section-link[data-type="rules"]         { --accent: #facc15; }
+    .section-link[data-type="commands"]      { --accent: #34d399; }
+
+    .section-link::after {
+      content: '↗';
+      font-size: 10px;
+      opacity: 0;
+      margin-left: 4px;
+      transition: opacity 0.15s;
+    }
+
+    .section-link:hover {
+      border-color: var(--accent, var(--green-dim));
+      color: var(--accent, var(--green-bright));
+      background: color-mix(in srgb, var(--accent, #4ade80) 8%, transparent);
+      transform: translateY(-1px);
+    }
+
+    .section-link:hover::after { opacity: 1; }
+
+    .no-results {
+      text-align: center;
+      padding: 80px 0;
+      color: var(--text-faint);
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      :root {
+        --sidebar-w: 220px;
+      }
+
+      header {
+        padding: 0 12px;
+        gap: 10px;
+        flex-wrap: wrap;
+        height: auto;
+        min-height: var(--header-h);
+        padding-top: 10px;
+        padding-bottom: 10px;
+      }
+
+      .menu-toggle {
+        display: inline-flex;
+      }
+
+      .header-title {
+        font-size: 17px;
+      }
+
+      .search-wrap {
+        order: 10;
+        flex: 1 1 100%;
+        max-width: 100%;
+      }
+
+      .admin-bar {
+        width: 100%;
+        margin-left: 0;
+        flex-wrap: wrap;
+      }
+
+      .layout {
+        position: relative;
+      }
+
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 300;
+        width: var(--sidebar-w);
+        height: 100vh;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        box-shadow: 8px 0 24px rgba(0,0,0,0.35);
+        padding-top: calc(var(--header-h) + 18px);
+      }
+
+      body.nav-open nav {
+        transform: translateX(0);
+      }
+
+      main {
+        padding: 18px 16px;
+      }
+
+      .nav-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 250;
+      }
+
+      body.nav-open .nav-overlay {
+        display: block;
+      }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false">☰</button>
+    <div class="header-title">
+      21C PowerApps <span id="env-badge" class="sandbox">SANDBOX</span>
+    </div>
+
+    <div class="env-switcher">
+      <button class="env-btn active-sandbox" id="btn-sandbox" onclick="switchEnv('sandbox')">Sandbox</button>
+      <button class="env-btn" id="btn-prod" onclick="switchEnv('prod')">Prod</button>
+    </div>
+
+    <div class="search-wrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input id="search" type="text" placeholder="Filter entities…" autocomplete="off" />
+    </div>
+
+    <div class="admin-bar" id="admin-bar"></div>
+  </header>
+
+  <div class="layout">
+    <div class="nav-overlay" id="nav-overlay"></div>
+    <nav id="sidebar"></nav>
+    <main id="main">
+      <div id="entity-groups"></div>
+      <div class="no-results" id="no-results">No entities match your search.</div>
+    </main>
+  </div>
+
+<script>
+  // ── Environment config ─────────────────────────────────────
+  const ENVS = {
+    sandbox: {
+      envId:   "619d9467-4744-ebfe-b2d4-6fc65b8c541b",
+      dynBase: "https://21equip-sandbox.crm.dynamics.com/main.aspx?appid=65532361-352f-f011-8c4e-6045bd0a8613&pagetype=entityrecord",
+      listBase: "https://21equip-sandbox.crm.dynamics.com/main.aspx?appid=65532361-352f-f011-8c4e-6045bd0a8613&pagetype=entitylist",
+    },
+    prod: {
+      envId:   "b48a53bd-b030-e6e5-a6c8-9134ea65191b",
+      dynBase: "https://21equip.crm.dynamics.com/main.aspx?appid=65532361-352f-f011-8c4e-6045bd0a8613&pagetype=entityrecord",
+      listBase: "https://21equip.crm.dynamics.com/main.aspx?appid=65532361-352f-f011-8c4e-6045bd0a8613&pagetype=entitylist",
+    },
+  };
+
+  let currentEnv = "sandbox";
+
+  // ── Entity list ────────────────────────────────────────────
+  // etn = Dynamics logical name used in record URL.
+  // Empty string = not yet mapped; GUID box will be grayed out.
+  const ENTITIES = [
+    { name: "Accounts",         id: "70816501-edb9-4740-a16c-6a5efbc05d84", etn: "account" },
+    { name: "Activity",         id: "c821cd41-f315-43d1-8fa6-82787b6f06e7", etn: "activitypointer" },
+	{ name: "Adobe Agreement",  id: "acbaa8fa-242a-4873-a10c-7fac41314276", etn: "adobe_agreement" },
+    { name: "Appointments",     id: "95e930c5-812a-44e8-85c9-154cd5f59465", etn: "appointment" },
+	{ name: "Campaigns",        id: "59c9b48d-5578-41f2-9ca2-689e1dac0905", etn: "campaign" },
+	{ name: "Campaign Activity",id: "87e909a7-e378-407e-92f2-2dab2a6b7ca6", etn: "campaignactivity" },
+	{ name: "Cases",            id: "e3fe4ff2-a630-49bb-a1e9-debc3a076815", etn: "incident" },
+    { name: "Contacts",         id: "608861bc-50a4-4c5f-a02c-21fe1943e2cf", etn: "contact" },
+    { name: "County",           id: "139c82e0-7e33-f011-8c4e-0022480a8031", etn: "c21_county" },
+    { name: "Demo Request",     id: "fefbc828-7f33-f011-8c4e-0022480a8031", etn: "c21_demorequest" },
+	{ name: "Email",            id: "95ae88b3-cc0c-45ac-a2db-655dceec238b", etn: "email" },
+    { name: "Equipment",        id: "cadf3237-ebbf-46d5-80e2-5278494802f5", etn: "msdyn_customerasset" },
+    { name: "Equipment Model",  id: "fdbde0c3-5ea5-45a4-92f6-94a08674bcfe", etn: "jd_equipmentmodel" },
+    { name: "Leads",            id: "dc6574cb-92ce-446c-a5d6-885a75107d52", etn: "lead" },
+	{ name: "Lien Search",      id: "0280b05f-7f33-f011-8c4e-0022480a8031", etn: "c21_liensearch" },
+    { name: "Location",         id: "56d72761-25cc-4fd5-8f19-8b2d5108efe7", etn: "msdyn_organizationalunit" },
+    { name: "Opportunity",      id: "30b0cd7e-0081-42e1-9a48-688442277fae", etn: "opportunity" },
+    { name: "Phone Call",       id: "21538890-1e54-4171-aca8-7ec97a9c652c", etn: "phonecall" },
+    { name: "Program Funds",    id: "63dab9df-5c2f-f011-8c4e-6045bd0a8613", etn: "c21_programfunds" },
+    { name: "Quote",            id: "107a7272-ebb3-469a-be46-76036d858623", etn: "quote" },
+    { name: "Quote Item",       id: "68b92c2b-4bfd-43f2-b183-0f0e8b49639c", etn: "quotedetail" },
+    { name: "Task",             id: "78e45d5e-f22b-4e20-813f-6cd2a3777968", etn: "task" },
+	{ name: "Teams",            id: "eff432f7-2508-44cf-971a-cbe44562dc68", etn: "team" },
+    { name: "Territory",        id: "8ff0290d-50c1-48f6-9070-cd0758bdc602", etn: "territory" },
+    { name: "Trucking Request", id: "6568aba2-5d2f-f011-8c4e-6045bd0a8613", etn: "c21_truckingrequest" },
+    { name: "Users",            id: "60696d5d-4d78-4712-b4e0-6cbef3df4906", etn: "systemuser" },
+    { name: "Workflow",         id: "97312f7b-46d9-4543-a408-bd85a83b2a1e", etn: "jd_dealworkflow" },
+    { name: "Workflow Line",    id: "076aff19-9d2b-4988-a2c2-5c1a36876c8f", etn: "jd_dealworkflowline" },
+    { name: "Work Request",     id: "c49b23e4-f31c-436d-b756-ada9cfa738a2", etn: "jd_workrequest" },
+  ];
+
+  const SECTIONS = [
+    { label: "Table",          suffix: "",                  type: "table" },
+    { label: "Columns",        suffix: "/fields",           type: "columns" },
+    { label: "Forms",          suffix: "/forms",            type: "forms" },
+    { label: "Views",          suffix: "/views",            type: "views" },
+    { label: "Relationships",  suffix: "/relationships",    type: "relationships" },
+    { label: "Business Rules", suffix: "/business%20rules", type: "rules" },
+    { label: "Commands",       suffix: "/commands",         type: "commands" },
+  ];
+
+  const ADMIN_LINKS = [
+    { label: "Solutions", path: "/solutions", icon: "◈" },
+    { label: "Home",      path: "/home",      icon: "⌂" },
+    { label: "Apps",      path: "/apps",      icon: "⊞" },
+    { label: "Flows",     path: "/logicflows",icon: "⟳" },
+  ];
+
+  const GUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const sorted  = [...ENTITIES].sort((a, b) => a.name.localeCompare(b.name));
+
+  // ── DOM refs ───────────────────────────────────────────────
+  const sidebar     = document.getElementById("sidebar");
+  const container   = document.getElementById("entity-groups");
+  const adminBar    = document.getElementById("admin-bar");
+  const searchInput = document.getElementById("search");
+  const noResults   = document.getElementById("no-results");
+  const mainEl      = document.getElementById("main");
+  const envBadge    = document.getElementById("env-badge");
+  const menuToggle  = document.getElementById("menu-toggle");
+  const navOverlay  = document.getElementById("nav-overlay");
+  const OFFSET      = 20;
+
+  function scrollToCard(targetId) {
+    const target = document.getElementById(targetId);
+    if (!target) return;
+
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    // Compensate for visual spacing inside the scrollable main panel.
+    requestAnimationFrame(() => {
+      mainEl.scrollBy({ top: -OFFSET, behavior: "auto" });
+    });
+  }
+
+  function isMobileView() {
+    return window.matchMedia("(max-width: 768px)").matches;
+  }
+
+  function openNav() {
+    document.body.classList.add("nav-open");
+    menuToggle.setAttribute("aria-expanded", "true");
+  }
+
+  function closeNav() {
+    document.body.classList.remove("nav-open");
+    menuToggle.setAttribute("aria-expanded", "false");
+  }
+
+  function toggleNav() {
+    if (document.body.classList.contains("nav-open")) {
+      closeNav();
+    } else {
+      openNav();
+    }
+  }
+
+
+  // ── Build sidebar ──────────────────────────────────────────
+  const navLabel = document.createElement("div");
+  navLabel.className = "nav-label";
+  navLabel.textContent = "Entities";
+  sidebar.appendChild(navLabel);
+
+  sorted.forEach(entity => {
+    const a = document.createElement("a");
+    a.className = "nav-item";
+    a.href = "#";
+    a.dataset.target = `entity-${entity.id}`;
+    a.dataset.entity = entity.name.toLowerCase();
+    a.textContent = entity.name;
+    a.addEventListener("click", e => {
+      e.preventDefault();
+      scrollToCard(a.dataset.target);
+      if (isMobileView()) closeNav();
+    });
+    sidebar.appendChild(a);
+  });
+
+  const navItems = Array.from(sidebar.querySelectorAll(".nav-item"));
+
+  // ── Admin bar ──────────────────────────────────────────────
+  function buildAdminBar() {
+    adminBar.innerHTML = "";
+    const base = `https://make.powerapps.com/environments/${ENVS[currentEnv].envId}`;
+    ADMIN_LINKS.forEach(link => {
+      const a = document.createElement("a");
+      a.className = "admin-link";
+      a.href = `${base}${link.path}`;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.textContent = `${link.icon} ${link.label}`;
+      adminBar.appendChild(a);
+    });
+  }
+
+  // ── GUID navigation ────────────────────────────────────────
+  function navigateGuid(etn, inputEl, errorEl) {
+    const raw = inputEl.value.trim().replace(/[{}]/g, "");
+    if (!raw) { flashError(errorEl, "Paste a GUID first."); return; }
+    if (!GUID_RE.test(raw)) { flashError(errorEl, "Not a valid GUID."); return; }
+    window.open(`${ENVS[currentEnv].dynBase}&etn=${etn}&id=${raw}`, "_blank");
+    inputEl.value = "";
+    errorEl.textContent = "";
+  }
+
+  function flashError(el, msg) {
+    el.textContent = msg;
+    setTimeout(() => { el.textContent = ""; }, 3000);
+  }
+
+  // ── Entity cards ───────────────────────────────────────────
+  function buildCards() {
+    container.innerHTML = "";
+    const base = `https://make.powerapps.com/environments/${ENVS[currentEnv].envId}`;
+
+    sorted.forEach((entity, i) => {
+      const card = document.createElement("div");
+      card.className = "entity-card";
+      card.id = `entity-${entity.id}`;
+      card.style.animationDelay = `${i * 15}ms`;
+      card.dataset.entity = entity.name.toLowerCase();
+
+      // — top row: title + GUID box
+      const cardTop = document.createElement("div");
+      cardTop.className = "card-top";
+
+      const h2 = document.createElement("h2");
+      h2.textContent = `${entity.name} (${entity.etn})`;
+      cardTop.appendChild(h2);
+
+      // GUID row
+      const guidRow = document.createElement("div");
+      guidRow.className = "guid-row" + (entity.etn ? "" : " disabled");
+
+      const guidWrap = document.createElement("div");
+      guidWrap.className = "guid-input-wrap";
+
+      const gi = document.createElement("input");
+      gi.className = "guid-input";
+      gi.type = "text";
+      gi.placeholder = entity.etn ? "Paste GUID → open record" : "etn not mapped — TODO";
+      gi.autocomplete = "off";
+      gi.spellcheck = false;
+
+      gi.addEventListener("paste", () => {
+        setTimeout(() => { gi.value = gi.value.trim().replace(/[{}]/g, ""); }, 10);
+      });
+
+      const clearBtn = document.createElement("button");
+      clearBtn.className = "guid-clear";
+      clearBtn.textContent = "✕";
+      clearBtn.addEventListener("click", () => { gi.value = ""; gi.focus(); });
+
+      guidWrap.appendChild(gi);
+      guidWrap.appendChild(clearBtn);
+
+      const goBtn = document.createElement("button");
+      goBtn.className = "guid-go";
+      goBtn.textContent = "Open →";
+
+      const errDiv = document.createElement("div");
+      errDiv.className = "guid-error";
+
+      gi.addEventListener("keydown", e => {
+        if (e.key === "Enter") navigateGuid(entity.etn, gi, errDiv);
+      });
+      goBtn.addEventListener("click", () => navigateGuid(entity.etn, gi, errDiv));
+
+      guidRow.appendChild(guidWrap);
+      guidRow.appendChild(goBtn);
+      cardTop.appendChild(guidRow);
+
+      card.appendChild(cardTop);
+      card.appendChild(errDiv);
+
+      // — section links
+      const linksDiv = document.createElement("div");
+      linksDiv.className = "links";
+
+      SECTIONS.forEach(section => {
+        const a = document.createElement("a");
+        a.className = "section-link";
+        a.dataset.type = section.type;
+        a.href = `${base}/entities/${entity.id}${section.suffix}`;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.textContent = section.label;
+        linksDiv.appendChild(a);
+      });
+
+      // D365 View button
+      if (entity.etn) {
+        const d365 = document.createElement("a");
+        d365.className = "section-link";
+        d365.style.borderColor = "var(--green-dim)";
+        d365.style.color = "var(--green-bright)";
+        d365.href = `${ENVS[currentEnv].listBase}&etn=${entity.etn}`;
+        d365.target = "_blank";
+        d365.rel = "noopener noreferrer";
+        d365.textContent = "D365 View";
+        linksDiv.appendChild(d365);
+      }
+
+      card.appendChild(linksDiv);
+      container.appendChild(card);
+    });
+  }
+
+  // ── Env switcher ───────────────────────────────────────────
+  function switchEnv(env) {
+    if (env === currentEnv) return;
+    currentEnv = env;
+
+    envBadge.textContent = env === "prod" ? "PROD" : "SANDBOX";
+    envBadge.className   = env === "prod" ? "prod" : "sandbox";
+
+    document.getElementById("btn-sandbox").className =
+      "env-btn" + (env === "sandbox" ? " active-sandbox" : "");
+    document.getElementById("btn-prod").className =
+      "env-btn" + (env === "prod" ? " active-prod" : "");
+
+    buildAdminBar();
+    buildCards();
+    applyFilter();
+    mainEl.scrollTop = 0;
+  }
+
+  // ── Search ─────────────────────────────────────────────────
+  function applyFilter() {
+    const q = searchInput.value.trim().toLowerCase();
+    const cards = Array.from(container.querySelectorAll(".entity-card"));
+    let visible = 0;
+
+    cards.forEach(card => {
+      const match = !q || card.dataset.entity.includes(q);
+      card.style.display = match ? "" : "none";
+      if (match) visible++;
+    });
+
+    navItems.forEach(item => {
+      const match = !q || item.dataset.entity.includes(q);
+      item.style.display = match ? "" : "none";
+    });
+
+    noResults.style.display = visible === 0 ? "block" : "none";
+  }
+
+  searchInput.addEventListener("input", applyFilter);
+
+  menuToggle.addEventListener("click", toggleNav);
+  navOverlay.addEventListener("click", closeNav);
+
+  window.addEventListener("resize", () => {
+    if (!isMobileView()) closeNav();
+  });
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeNav();
+  });
+
+  // ── Scroll spy ─────────────────────────────────────────────
+  mainEl.addEventListener("scroll", () => {
+    const scrollTop = mainEl.scrollTop;
+    let current = null;
+
+    Array.from(container.querySelectorAll(".entity-card")).forEach(card => {
+      if (card.style.display === "none") return;
+      if (card.offsetTop - 80 <= scrollTop) current = card.id;
+    });
+
+    navItems.forEach(item => {
+      if (item.style.display === "none") {
+        item.classList.remove("active");
+        return;
+      }
+      item.classList.toggle("active", item.dataset.target === current);
+    });
+  });
+
+  // ── Init ───────────────────────────────────────────────────
+  buildAdminBar();
+  buildCards();
+</script>
+</body>
+</html>
