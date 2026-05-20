@@ -5,36 +5,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>21C PowerApps Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:           #0d1a0f;
-      --surface:      #122016;
-      --surface2:     #1a2e1d;
-      --border:       #2a4030;
+      --sidebar-w:    170px;
+      --header-h:     64px;
+      --amber:        #b45309;
+      --amber-dim:    #92400e;
+      --red:          #c0392b;
+      --red-dim:      #922b21;
+    }
+
+    /* ── PROD theme (default / white) ─────────────────────── */
+    body, body.prod {
+      --bg:           #f8f9f7;
+      --surface:      #ffffff;
+      --surface2:     #f0f4f1;
+      --border:       #d4e0d8;
+      --green-bright: #1a5c35;
+      --green-mid:    #217a45;
+      --green-dim:    #2d9e5a;
+      --text:         #1a2e22;
+      --text-muted:   #3d5a48;
+      --text-faint:   #8aab97;
+    }
+
+    /* ── SANDBOX theme (black) ────────────────────────────── */
+    body.sandbox {
+      --bg:           #0a0a0a;
+      --surface:      #141414;
+      --surface2:     #1e1e1e;
+      --border:       #2e2e2e;
       --green-bright: #4ade80;
       --green-mid:    #22c55e;
       --green-dim:    #16a34a;
-      --amber:        #fbbf24;
-      --amber-dim:    #b45309;
-      --red:          #f87171;
-      --red-dim:      #991b1b;
-      --text:         #d1fae5;
-      --text-muted:   #6ee7b7;
-      --text-faint:   #34614a;
-      --sidebar-w:    170px;
-      --header-h:     64px;
+      --text:         #f0f0f0;
+      --text-muted:   #b0b0b0;
+      --text-faint:   #555555;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      transition: background 0.3s ease, color 0.3s ease;
     }
 
     /* ── HEADER ───────────────────────────────────────────── */
@@ -55,7 +74,7 @@
     }
 
     .menu-toggle:hover {
-      background: rgba(74,222,128,0.08);
+      background: rgba(26,92,53,0.08);
       border-color: var(--green-dim);
     }
     header {
@@ -65,17 +84,24 @@
       height: var(--header-h);
       background: var(--surface);
       border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 4px rgba(26,92,53,0.07);
       display: flex;
       align-items: center;
       gap: 16px;
       padding: 0 24px;
+      transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    body.sandbox header {
+      box-shadow: 0 1px 8px rgba(0,0,0,0.4);
     }
 
     .header-title {
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Fraunces', serif;
+      font-optical-sizing: auto;
       font-weight: 800;
       font-size: 22px;
-      letter-spacing: 0.04em;
+      letter-spacing: -0.01em;
       color: var(--green-bright);
       white-space: nowrap;
     }
@@ -83,65 +109,45 @@
     .env-switcher {
       display: flex;
       align-items: center;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 3px;
-      gap: 2px;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+      gap: 3px;
       flex-shrink: 0;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     }
 
     .env-btn {
-      padding: 4px 14px;
-      border-radius: 5px;
+      padding: 6px 18px;
+      border-radius: 7px;
       border: none;
       background: transparent;
       font-family: 'DM Mono', monospace;
       font-size: 12px;
       font-weight: 500;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
       cursor: pointer;
-      transition: background 0.15s, color 0.15s;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
       color: var(--text-faint);
     }
 
     .env-btn:hover { color: var(--text-muted); }
 
     .env-btn.active-sandbox {
-      background: var(--surface2);
-      color: var(--green-bright);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      background: #0a0a0a;
+      color: #4ade80;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.35);
     }
 
     .env-btn.active-prod {
-      background: #2a0a0a;
+      background: #ffffff;
       color: var(--red);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      box-shadow: 0 1px 5px rgba(0,0,0,0.12);
+      border: 1px solid rgba(192,57,43,0.25);
     }
 
-    #env-badge {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.1em;
-      padding: 2px 8px;
-      border-radius: 4px;
-      vertical-align: middle;
-      margin-left: 8px;
-      transition: background 0.2s, color 0.2s;
-    }
-
-    #env-badge.sandbox {
-      background: rgba(74,222,128,0.12);
-      color: var(--green-bright);
-      border: 1px solid rgba(74,222,128,0.25);
-    }
-
-    #env-badge.prod {
-      background: rgba(248,113,113,0.12);
-      color: var(--red);
-      border: 1px solid rgba(248,113,113,0.25);
-    }
 
     .search-wrap {
       flex: 1;
@@ -165,14 +171,14 @@
       border-radius: 8px;
       padding: 7px 12px 7px 34px;
       color: var(--text);
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       font-size: 14px;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     #search::placeholder { color: var(--text-faint); }
-    #search:focus { border-color: var(--green-dim); }
+    #search:focus { border-color: var(--green-dim); box-shadow: 0 0 0 3px rgba(45,158,90,0.12); }
 
     .admin-bar {
       display: flex;
@@ -186,7 +192,7 @@
       gap: 5px;
       padding: 5px 11px;
       background: transparent;
-      border: 1px solid var(--amber-dim);
+      border: 1px solid rgba(180,83,9,0.4);
       border-radius: 6px;
       color: var(--amber);
       font-family: 'DM Mono', monospace;
@@ -198,7 +204,7 @@
     }
 
     .admin-link:hover {
-      background: rgba(251,191,36,0.1);
+      background: rgba(180,83,9,0.08);
       border-color: var(--amber);
     }
 
@@ -215,10 +221,12 @@
       background: var(--surface);
       border-right: 1px solid var(--border);
       overflow-y: auto;
-      padding: 16px 0;
+      padding: 0;
       position: sticky;
-      top: var(--header-h);
+      top: 0;
       height: calc(100vh - var(--header-h));
+      align-self: flex-start;
+      transition: background 0.3s ease, border-color 0.3s ease;
     }
 
     nav::-webkit-scrollbar { width: 4px; }
@@ -231,13 +239,19 @@
       letter-spacing: 0.12em;
       color: var(--text-faint);
       text-transform: uppercase;
-      padding: 0 16px 6px;
+      padding: 16px 16px 5px;
+      line-height: 1;
+    }
+
+    .nav-item:first-of-type {
+      margin-top: 0;
     }
 
     .nav-item {
       display: block;
       padding: 7px 12px;
       font-size: 12px;
+      font-weight: 500;
       color: var(--text-muted);
       text-decoration: none;
       border-left: 2px solid transparent;
@@ -251,12 +265,13 @@
     .nav-item:hover {
       color: var(--green-bright);
       border-left-color: var(--green-bright);
-      background: rgba(74,222,128,0.04);
+      background: rgba(26,92,53,0.05);
     }
 
     .nav-item.active {
       color: var(--green-bright);
       border-left-color: var(--green-bright);
+      background: rgba(26,92,53,0.06);
     }
 
     main {
@@ -276,11 +291,15 @@
       border-radius: 12px;
       padding: 18px 20px;
       margin-bottom: 16px;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
       animation: fadeUp 0.3s ease both;
+      box-shadow: 0 1px 3px rgba(26,92,53,0.06);
     }
 
-    .entity-card:hover { border-color: var(--green-dim); }
+    .entity-card:hover {
+      border-color: var(--green-dim);
+      box-shadow: 0 3px 10px rgba(26,92,53,0.10);
+    }
 
     .card-top {
       display: flex;
@@ -291,10 +310,11 @@
     }
 
     .entity-card h2 {
-      font-family: 'Syne', sans-serif;
+      font-family: 'Fraunces', serif;
+      font-optical-sizing: auto;
       font-size: 15px;
       font-weight: 700;
-      letter-spacing: 0.04em;
+      letter-spacing: -0.01em;
       color: var(--green-bright);
       display: flex;
       align-items: center;
@@ -342,11 +362,11 @@
       font-family: 'DM Mono', monospace;
       font-size: 11px;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     .guid-input::placeholder { color: var(--text-faint); font-size: 10px; }
-    .guid-input:focus { border-color: var(--green-dim); }
+    .guid-input:focus { border-color: var(--green-dim); box-shadow: 0 0 0 3px rgba(45,158,90,0.10); }
 
     .guid-clear {
       position: absolute;
@@ -368,7 +388,7 @@
     .guid-go {
       flex-shrink: 0;
       padding: 5px 11px;
-      background: var(--surface2);
+      background: rgba(26,92,53,0.07);
       border: 1px solid var(--green-dim);
       border-radius: 6px;
       color: var(--green-bright);
@@ -381,7 +401,7 @@
     }
 
     .guid-go:hover {
-      background: rgba(74,222,128,0.1);
+      background: rgba(26,92,53,0.14);
       border-color: var(--green-bright);
     }
 
@@ -411,16 +431,16 @@
       font-family: 'DM Mono', monospace;
       font-size: 12px;
       text-decoration: none;
-      transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
+      transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s, box-shadow 0.15s;
     }
 
-    .section-link[data-type="table"]         { --accent: #4ade80; }
-    .section-link[data-type="columns"]       { --accent: #60a5fa; }
-    .section-link[data-type="forms"]         { --accent: #c084fc; }
-    .section-link[data-type="views"]         { --accent: #fb923c; }
-    .section-link[data-type="relationships"] { --accent: #f472b6; }
-    .section-link[data-type="rules"]         { --accent: #facc15; }
-    .section-link[data-type="commands"]      { --accent: #34d399; }
+    .section-link[data-type="table"]         { --accent: #1a5c35; }
+    .section-link[data-type="columns"]       { --accent: #1d4ed8; }
+    .section-link[data-type="forms"]         { --accent: #7e22ce; }
+    .section-link[data-type="views"]         { --accent: #c2410c; }
+    .section-link[data-type="relationships"] { --accent: #be185d; }
+    .section-link[data-type="rules"]         { --accent: #a16207; }
+    .section-link[data-type="commands"]      { --accent: #065f46; }
 
     .section-link::after {
       content: '↗';
@@ -433,8 +453,9 @@
     .section-link:hover {
       border-color: var(--accent, var(--green-dim));
       color: var(--accent, var(--green-bright));
-      background: color-mix(in srgb, var(--accent, #4ade80) 8%, transparent);
+      background: color-mix(in srgb, var(--accent, #1a5c35) 8%, transparent);
       transform: translateY(-1px);
+      box-shadow: 0 2px 6px color-mix(in srgb, var(--accent, #1a5c35) 18%, transparent);
     }
 
     .section-link:hover::after { opacity: 1; }
@@ -512,7 +533,7 @@
         display: none;
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.45);
+        background: rgba(26,40,30,0.35);
         z-index: 250;
       }
 
@@ -527,12 +548,12 @@
     }
   </style>
 </head>
-<body>
+<body class="sandbox">
 
   <header>
     <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false">☰</button>
     <div class="header-title">
-      21C PowerApps <span id="env-badge" class="sandbox">SANDBOX</span>
+      21C PowerApps
     </div>
 
     <div class="env-switcher">
@@ -640,7 +661,6 @@
   const searchInput = document.getElementById("search");
   const noResults   = document.getElementById("no-results");
   const mainEl      = document.getElementById("main");
-  const envBadge    = document.getElementById("env-badge");
   const menuToggle  = document.getElementById("menu-toggle");
   const navOverlay  = document.getElementById("nav-overlay");
   const OFFSET      = 20;
@@ -836,8 +856,9 @@
     if (env === currentEnv) return;
     currentEnv = env;
 
-    envBadge.textContent = env === "prod" ? "PROD" : "SANDBOX";
-    envBadge.className   = env === "prod" ? "prod" : "sandbox";
+    // Apply theme class to body
+    document.body.classList.remove("sandbox", "prod");
+    document.body.classList.add(env);
 
     document.getElementById("btn-sandbox").className =
       "env-btn" + (env === "sandbox" ? " active-sandbox" : "");
